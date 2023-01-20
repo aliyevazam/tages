@@ -11,16 +11,16 @@ type tagesRepo struct {
 	db *sqlx.DB
 }
 
-func New(db *sqlx.DB) *tagesRepo {
+func NewTagesRepo(db *sqlx.DB) *tagesRepo {
 	return &tagesRepo{
 		db: db,
 	}
 
 }
 
-func (t *tagesRepo) CreateFileInfo(req *pb.FileInfo) error {
-	inserter := sq.Insert("files").Columns("filename", "created_at", "updated_at").
-		Values(req.FileName, req.CreatedAt, req.UpdatedAt).
+func (t *tagesRepo) CreateOrUpdateFileInfo(FileName string) error {
+	inserter := sq.Insert("files").Columns("filename").
+		Values(FileName).Suffix("ON CONFLICT DO UPDATE SET updated_at=current_timestamp").
 		PlaceholderFormat(sq.Dollar).
 		RunWith(t.db)
 	_, err := inserter.Exec()
@@ -30,23 +30,23 @@ func (t *tagesRepo) CreateFileInfo(req *pb.FileInfo) error {
 	return nil
 }
 
-func (t *tagesRepo) GetFileInfo (*pb.Empty)(*pb.GetFile,error) {
-	getter := sq.Select("filename","created_at","updated_at").RunWith(t.db)
-	result,err := getter.Query()
+func (t *tagesRepo) GetFileInfo(*pb.Empty) (*pb.GetFile, error) {
+	getter := sq.Select("filename", "created_at", "updated_at").RunWith(t.db)
+	rows, err := getter.Query()
 	if err != nil {
-		return &pb.GetFile{},err
+		return &pb.GetFile{}, err
 	}
 	response := &pb.GetFile{}
 
-	for result.Next() {
+	for rows.Next() {
 		file := &pb.FileInfo{}
-		err := result.Scan(&file.FileName,&file.CreatedAt,&file.UpdatedAt)
+		err := rows.Scan(
+			&file.FileName, &file.CreatedAt, &file.UpdatedAt)
 		if err != nil {
-			return &pb.GetFile{},err
+			return &pb.GetFile{}, err
 		}
-		response = append(response, file)
+		response.File = append(response.File, file)
 	}
-	return response,nil
-
+	return response, nil
 
 }

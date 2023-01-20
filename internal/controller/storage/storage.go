@@ -10,18 +10,18 @@ import (
 type IStorage interface {
 	Tages() repo.FileStorageI
 }
-type storagePg struct {
+type StoragePg struct {
 	db        *sqlx.DB
 	tagesRepo repo.FileStorageI
 }
 
 // NewStoragePg ...
-func NewStoragePg(db *sqlx.DB) *storagePg {
-	return &storagePg{
+func NewStoragePg(db *sqlx.DB) *StoragePg {
+	return &StoragePg{
 		db:        db,
-		tagesRepo: postgres.New(db),
+		tagesRepo: postgres.NewTagesRepo(db),
 	}
 }
-func (s storagePg) Tages() repo.FileStorageI {
+func (s StoragePg) Tages() repo.FileStorageI {
 	return s.tagesRepo
 }

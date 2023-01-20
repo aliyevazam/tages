@@ -14,11 +14,6 @@ import (
 type DiskFileStore struct {
 	mutex      sync.RWMutex
 	fileFolder string
-	Files      map[string]*FileInfo
-}
-type FileInfo struct {
-	Name string
-	Path string
 }
 
 const path = "./files/info.json"
@@ -26,15 +21,17 @@ const path = "./files/info.json"
 func NewDiskFileStore(fileFolder string) *DiskFileStore {
 	return &DiskFileStore{
 		fileFolder: fileFolder,
-		Files:      make(map[string]*FileInfo),
 	}
 }
 
+/* Func for save file in disk
+ */
 func (store *DiskFileStore) Save(
 	fileName string,
 	fileData bytes.Buffer,
 ) error {
-
+	store.mutex.Lock()
+	defer store.mutex.Unlock()
 	filePath := fmt.Sprintf("%s/%s", store.fileFolder, fileName)
 	fmt.Println(filePath)
 	file, err := os.Create(filePath)
@@ -47,17 +44,10 @@ func (store *DiskFileStore) Save(
 		return fmt.Errorf("cannot write image to file: %w", err)
 	}
 
-	store.mutex.Lock()
-	defer store.mutex.Unlock()
-
-	store.Files[fileName] = &FileInfo{
-		Name: fileName,
-		Path: filePath,
-	}
 	return nil
 }
 
-func (store *DiskFileStore) GetImage(
+func (store *DiskFileStore) DownloadFile(
 	FileName string,
 	stream tages.TagesService_DownloadFileServer,
 ) error {
@@ -67,18 +57,15 @@ func (store *DiskFileStore) GetImage(
 	file, err := os.Open(filePath)
 	defer file.Close()
 	if err != nil {
-		return fmt.Errorf("cannot open image file: %w", err)
+		return fmt.Errorf("cannot open file: %w", err)
 	}
 	reader := bufio.NewReader(file)
 	buffer := make([]byte, 1024)
-	size := 0
 	for {
 		n, err := reader.Read(buffer)
 		if err == io.EOF {
 			break
 		}
-		size += n
-
 		req := &tages.DowloandResponse{
 			ChunkData: buffer[:n],
 		}
@@ -93,4 +80,3 @@ func (store *DiskFileStore) GetImage(
 
 	return nil
 }
-

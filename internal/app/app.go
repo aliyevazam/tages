@@ -6,6 +6,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/aliyevazam/tages/internal/pkg/db"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_ratelimit "github.com/grpc-ecosystem/go-grpc-middleware/ratelimit"
 	"github.com/juju/ratelimit"
@@ -47,27 +48,31 @@ func (r *rateLimiterInterceptor) Limit() bool {
 func Run(cfg config.Config) {
 	l := logger.New(cfg.LogLevel)
 
+	connDB, err := db.ConnectToDB(cfg)
+	if err != nil {
+		l.Fatal(fmt.Errorf("error while connDB, err := db.ConnectToDB(cfg): %v"), err)
+	}
 	fileStore := filestore.NewDiskFileStore("files")
 
-	TagesService := service.NewTagesService(l, fileStore)
+	TagesService := service.NewTagesService(connDB, l, fileStore)
 
 	lis, err := net.Listen("tcp", ":"+cfg.ServicePort)
 	if err != nil {
 		l.Fatal(fmt.Errorf("app - Run - grpcclient.New: %w", err))
 	}
 
-	limiter1 := &rateLimiterInterceptor{}
-	limiter2 := &rateLimiterInterceptor{}
+	limiterUnary := &rateLimiterInterceptor{}
+	limiterStream := &rateLimiterInterceptor{}
 
-	limiter1.TokenBucket = ratelimit.NewBucket(gatherTime, int64(streamcap))
-	limiter2.TokenBucket = ratelimit.NewBucket(gatherTime, int64(unarycap))
+	limiterUnary.TokenBucket = ratelimit.NewBucket(gatherTime, int64(unarycap))
+	limiterStream.TokenBucket = ratelimit.NewBucket(gatherTime, int64(streamcap))
 
 	c := grpc.NewServer(
 		grpc_middleware.WithUnaryServerChain(
-			grpc_ratelimit.UnaryServerInterceptor(limiter2),
+			grpc_ratelimit.UnaryServerInterceptor(limiterUnary),
 		),
 		grpc_middleware.WithStreamServerChain(
-			grpc_ratelimit.StreamServerInterceptor(limiter1)),
+			grpc_ratelimit.StreamServerInterceptor(limiterStream)),
 	)
 	reflection.Register(c)
 	tages.RegisterTagesServiceServer(c, TagesService)

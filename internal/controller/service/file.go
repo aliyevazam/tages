@@ -8,14 +8,13 @@ import (
 	"fmt"
 	"io"
 	"log"
+
 	// "time"
 
 	pb "github.com/aliyevazam/tages/genproto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
-
-// const maxImageSize = 1 << 20
 
 func (b *TagesService) UploadFile(stream pb.TagesService_UploadFileServer) error {
 	req, err := stream.Recv()
@@ -24,10 +23,10 @@ func (b *TagesService) UploadFile(stream pb.TagesService_UploadFileServer) error
 		return logError(status.Errorf(codes.Unknown, "cannot receive image info"))
 	}
 	FileName := req.GetFileName()
-	fmt.Printf("image-name %s ", FileName)
+	fmt.Printf("file-name %s ", FileName)
 
 	fileData := bytes.Buffer{}
-	// imageSize := 0
+
 	for {
 		err := contextError(stream.Context())
 		if err != nil {
@@ -41,40 +40,34 @@ func (b *TagesService) UploadFile(stream pb.TagesService_UploadFileServer) error
 			break
 		}
 		if err != nil {
-			return logError(status.Errorf(codes.Unknown, "cannot receive chunk data: %v", err))
+			fmt.Println(logError(status.Errorf(codes.Unknown, "cannot receive data: %v", err)))
+			break
 		}
 
 		chunk := req.GetChunkData()
-		size := len(chunk)
-
-		log.Printf("received a chunk with size: %d", size)
-
-		// imageSize += size
-		// if imageSize > maxImageSize {
-		// 	return logError(status.Errorf(codes.InvalidArgument, "image is too large: %d > %d", imageSize, maxImageSize))
-		// }
-
-		// write slowly
-		// time.Sleep(time.Second)
 
 		_, err = fileData.Write(chunk)
 		if err != nil {
 			return logError(status.Errorf(codes.Internal, "cannot write chunk data: %v", err))
 		}
 	}
-	err = b.fileStore.Save(FileName, fileData)
+	err = b.FileStore.Save(FileName, fileData)
 	if err != nil {
 		return logError(status.Errorf(codes.Internal, "cannot save image in folder: %v", err))
 	}
-	// res := &pb.FileInfo{
-	// 	FileName:  FileName,
-	// 	CreatedAt: time.Now().String(),
-	// 	UpdatedAt: time.Now().String(),
-	// }
-	
+	err = b.Storage.Tages().CreateOrUpdateFileInfo(FileName)
 	if err != nil {
-		return err
+		return logError(status.Errorf(codes.Internal, "cannot insert file info to postgres %v", err))
 	}
+
+	err = stream.SendAndClose(&pb.UploadResponse{
+		FileName: FileName, Status: true,
+	})
+
+	if err != nil {
+		return logError(status.Errorf(codes.Internal, "cannot send message to client %v", err))
+	}
+
 	var m interface{}
 	err = stream.RecvMsg(m)
 	if err != nil {
@@ -84,7 +77,7 @@ func (b *TagesService) UploadFile(stream pb.TagesService_UploadFileServer) error
 }
 
 func (b *TagesService) DownloadFile(req *pb.DowloandRequest, stream pb.TagesService_DownloadFileServer) error {
-	err := b.fileStore.GetImage(req.FileName, stream)
+	err := b.FileStore.DownloadFile(req.FileName, stream)
 	if err != nil {
 		return logError(status.Errorf(codes.Internal, "cannot get image from folder: %v", err))
 	}
@@ -92,7 +85,7 @@ func (b *TagesService) DownloadFile(req *pb.DowloandRequest, stream pb.TagesServ
 }
 
 func (b *TagesService) GetFileInfo(ctx context.Context, req *pb.Empty) (*pb.GetFile, error) {
-	res, err := b.fileStore.GetFileInfo(req)
+	res, err := b.Storage.Tages().GetFileInfo(req)
 	if err != nil {
 		return &pb.GetFile{}, err
 	}
