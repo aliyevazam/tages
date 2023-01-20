@@ -1,0 +1,38 @@
+syntax="proto3";
+
+
+
+service TagesService {
+    rpc UploadFile(stream UploadRequest) returns (UploadResponse) {};
+    rpc DownloadFile(DowloandRequest) returns (stream DowloandResponse) {};
+    rpc GetFileInfo(Empty) returns (FileInfo);
+
+  }
+
+message Empty{}
+
+message UploadRequest {
+    oneof data {
+      string FileName = 1;
+      bytes chunk_data = 2;
+    };
+  }
+
+message DowloandRequest {
+  string FileName = 1;
+}
+
+message DowloandResponse {
+  bytes chunk_data = 1;
+}
+
+message UploadResponse {
+    string FileName = 1;
+    bool status = 2;
+}
+
+message FileInfo {
+  string FileName = 1;
+  string Created_at = 2;
+  string Updated_at = 3;
+}
