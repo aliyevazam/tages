@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	gatherTime = 5 * time.Second
+	gatherTime = 2 * time.Second
 	streamcap  = 10
 	unarycap   = 100
 )
