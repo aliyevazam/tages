@@ -5,7 +5,7 @@ syntax="proto3";
 service TagesService {
     rpc UploadFile(stream UploadRequest) returns (UploadResponse) {};
     rpc DownloadFile(DowloandRequest) returns (stream DowloandResponse) {};
-    rpc GetFileInfo(Empty) returns (FileInfo);
+    rpc GetFileInfo(Empty) returns (GetFile);
 
   }
 
@@ -29,6 +29,11 @@ message DowloandResponse {
 message UploadResponse {
     string FileName = 1;
     bool status = 2;
+}
+
+
+message GetFile {
+  repeated FileInfo file = 1;
 }
 
 message FileInfo {

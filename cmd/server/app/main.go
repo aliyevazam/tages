@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/tages/internal/app"
-	"github.com/tages/internal/pkg/config"
+	"github.com/aliyevazam/tages/internal/app"
+	"github.com/aliyevazam/tages/internal/pkg/config"
 )
 
 func main() {
