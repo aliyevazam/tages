@@ -82,7 +82,6 @@ func TestClientDownloadImage(t *testing.T) {
 	})
 	require.NoError(t, err)
 	fileData := bytes.Buffer{}
-	imageSize := 0
 	for {
 		err := contextError(stream.Context())
 		if err != nil {
@@ -102,15 +101,18 @@ func TestClientDownloadImage(t *testing.T) {
 		}
 
 		chunk := req.GetChunkData()
-		size := len(chunk)
-
-		imageSize += size
 
 		_, err = fileData.Write(chunk)
 		require.NoError(t, err)
 		if err != nil {
 			break
 		}
+	}
+
+	err = stream.CloseSend()
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
 
 	filePath := fmt.Sprintf("%s/%s", testFileFolder, imageName)
