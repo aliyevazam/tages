@@ -68,11 +68,6 @@ func (b *TagesService) UploadFile(stream pb.TagesService_UploadFileServer) error
 		return logError(status.Errorf(codes.Internal, "cannot send message to client %v", err))
 	}
 
-	var m interface{}
-	err = stream.RecvMsg(m)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 

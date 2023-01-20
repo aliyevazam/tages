@@ -20,7 +20,7 @@ func NewTagesRepo(db *sqlx.DB) *tagesRepo {
 
 func (t *tagesRepo) CreateOrUpdateFileInfo(FileName string) error {
 	inserter := sq.Insert("files").Columns("file_name").
-		Values(FileName).Suffix("ON CONFLICT DO UPDATE SET updated_at=current_timestamp").
+		Values(FileName).Suffix("ON CONFLICT (file_name) DO UPDATE SET updated_at=current_timestamp").
 		PlaceholderFormat(sq.Dollar).
 		RunWith(t.db)
 	_, err := inserter.Exec()

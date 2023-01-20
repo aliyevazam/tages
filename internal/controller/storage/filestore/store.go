@@ -11,6 +11,7 @@ import (
 	tages "github.com/aliyevazam/tages/genproto"
 )
 
+/* Struct for working with diskstore*/
 type DiskFileStore struct {
 	mutex      sync.RWMutex
 	fileFolder string
@@ -47,6 +48,7 @@ func (store *DiskFileStore) Save(
 	return nil
 }
 
+/* Func for dowloand file */
 func (store *DiskFileStore) DownloadFile(
 	FileName string,
 	stream tages.TagesService_DownloadFileServer,
@@ -74,6 +76,11 @@ func (store *DiskFileStore) DownloadFile(
 		if err != nil {
 			return err
 		}
+	}
+	var m interface{}
+	err = stream.SendMsg(m)
+	if err != nil {
+		return fmt.Errorf("error sending msg to stream %v", err)
 	}
 	store.mutex.Lock()
 	defer store.mutex.Unlock()
