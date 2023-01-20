@@ -19,7 +19,7 @@ func NewTagesRepo(db *sqlx.DB) *tagesRepo {
 }
 
 func (t *tagesRepo) CreateOrUpdateFileInfo(FileName string) error {
-	inserter := sq.Insert("files").Columns("filename").
+	inserter := sq.Insert("files").Columns("file_name").
 		Values(FileName).Suffix("ON CONFLICT DO UPDATE SET updated_at=current_timestamp").
 		PlaceholderFormat(sq.Dollar).
 		RunWith(t.db)
@@ -31,7 +31,7 @@ func (t *tagesRepo) CreateOrUpdateFileInfo(FileName string) error {
 }
 
 func (t *tagesRepo) GetFileInfo(*pb.Empty) (*pb.GetFile, error) {
-	getter := sq.Select("filename", "created_at", "updated_at").RunWith(t.db)
+	getter := sq.Select("file_name", "created_at", "updated_at").RunWith(t.db)
 	rows, err := getter.Query()
 	if err != nil {
 		return &pb.GetFile{}, err
