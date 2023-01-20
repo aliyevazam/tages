@@ -22,7 +22,7 @@ func UploadFile(c pb.TagesServiceClient, i int, fileName string) {
 	fmt.Printf("Start upload %d gorutine\n", i)
 	stream, err := c.UploadFile(context.Background())
 	if err != nil {
-		fmt.Println("Error while stream", err)
+		fmt.Println("Error while streaming", err)
 		return
 	}
 	req := &pb.UploadRequest{
