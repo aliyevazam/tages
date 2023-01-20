@@ -50,7 +50,7 @@ func Run(cfg config.Config) {
 
 	connDB, err := db.ConnectToDB(cfg)
 	if err != nil {
-		l.Fatal(fmt.Errorf("error while connDB, err := db.ConnectToDB(cfg): %v"), err)
+		l.Fatal(fmt.Errorf("error while connDB : %w"), err)
 	}
 	fileStore := filestore.NewDiskFileStore("files")
 

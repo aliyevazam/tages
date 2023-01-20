@@ -9,6 +9,7 @@ require (
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/joho/godotenv v1.4.0
 	github.com/juju/ratelimit v1.0.2
+	github.com/lib/pq v1.2.0
 	github.com/rs/zerolog v1.28.0
 	github.com/spf13/viper v1.15.0
 	github.com/stretchr/testify v1.8.1

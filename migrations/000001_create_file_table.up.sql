@@ -4,4 +4,4 @@ CREATE TABLE IF NOT EXISTS files(
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE UNIQUE INDEX uniq_file_name
-on file (file_name);
+on files (file_name);
