@@ -3,7 +3,6 @@ package filestore
 import (
 	"bufio"
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -11,10 +10,6 @@ import (
 
 	tages "github.com/aliyevazam/tages/genproto"
 )
-
-type databaseSchema struct {
-	FileInfo map[string]*tages.FileInfo `json:"users"`
-}
 
 type DiskFileStore struct {
 	mutex      sync.RWMutex
@@ -99,46 +94,3 @@ func (store *DiskFileStore) GetImage(
 	return nil
 }
 
-func CreateFileInfo(req databaseSchema) error {
-	dat, err := json.Marshal(req)
-	fmt.Println("keldi create file infoda ")
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(path, dat, 0600)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func ReadFile() (databaseSchema, error) {
-	fmt.Println("keldi readfilega")
-	dat, err := json.Marshal(path)
-	if err != nil {
-		fmt.Println("1 error")
-		return databaseSchema{}, err
-	}
-	db := databaseSchema{}
-	err = json.Unmarshal(dat, &db)
-	if err != nil {
-		fmt.Println("2 error")
-		fmt.Println(err)
-		return databaseSchema{}, err
-	}
-	return db, nil
-}
-
-func (store *DiskFileStore) GetFileInfo(*tages.Empty) (*tages.FileInfo, error) {
-	dat, err := json.Marshal(path)
-	if err != nil {
-		return &tages.FileInfo{}, err
-	}
-	response := &tages.FileInfo{}
-	err = json.Unmarshal(dat, response)
-	if err != nil {
-		return &tages.FileInfo{}, err
-	}
-	return response, nil
-}

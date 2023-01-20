@@ -8,10 +8,9 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"time"
+	// "time"
 
 	pb "github.com/aliyevazam/tages/genproto"
-	s "github.com/aliyevazam/tages/internal/controller/storage/filestore"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -67,19 +66,12 @@ func (b *TagesService) UploadFile(stream pb.TagesService_UploadFileServer) error
 	if err != nil {
 		return logError(status.Errorf(codes.Internal, "cannot save image in folder: %v", err))
 	}
-	fmt.Println("keldi")
-	db, err := s.ReadFile()
-	if err != nil {
-		return err
-	}
-	res := &pb.FileInfo{
-		FileName:  FileName,
-		CreatedAt: time.Now().String(),
-		UpdatedAt: time.Now().String(),
-	}
-	db.FileInfo[FileName] = res
-	fmt.Println("keldi file go da")
-	err = s.CreateFileInfo(db)
+	// res := &pb.FileInfo{
+	// 	FileName:  FileName,
+	// 	CreatedAt: time.Now().String(),
+	// 	UpdatedAt: time.Now().String(),
+	// }
+	
 	if err != nil {
 		return err
 	}
@@ -99,10 +91,10 @@ func (b *TagesService) DownloadFile(req *pb.DowloandRequest, stream pb.TagesServ
 	return nil
 }
 
-func (b *TagesService) GetFileInfo(ctx context.Context, req *pb.Empty) (*pb.FileInfo, error) {
+func (b *TagesService) GetFileInfo(ctx context.Context, req *pb.Empty) (*pb.GetFile, error) {
 	res, err := b.fileStore.GetFileInfo(req)
 	if err != nil {
-		return &pb.FileInfo{}, err
+		return &pb.GetFile{}, err
 	}
 	return res, nil
 }

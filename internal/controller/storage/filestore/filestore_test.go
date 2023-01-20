@@ -10,7 +10,7 @@ import (
 	"os"
 	"testing"
 
-	tages "github.com/tages/genproto"
+	tages "github.com/aliyevazam/tages/genproto"
 
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
